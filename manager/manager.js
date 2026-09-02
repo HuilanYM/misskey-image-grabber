@@ -526,7 +526,7 @@ async function refreshFileUrl(item) {
 const MEDIA_PACE = {
   gentle: [700, 1800],
   normal: [220, 720],
-  fast: [80, 280],
+  fast: [150, 450],
 };
 
 async function fetchSelectedImages(selItems) {
