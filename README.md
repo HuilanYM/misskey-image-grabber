@@ -6,9 +6,13 @@
 
 > ⚠️ 本扩展为**非官方**的社区工具，与 Misskey 或 misskey.io 无隶属关系。
 
-![管理页：安全预设 / 抓取范围 / 内容过滤 / 命名与保存](docs/screenshot-setup.png)
+**管理页** —— 三档安全预设、抓取范围与内容过滤、命名规则与保存位置：
 
-![档案页：左侧时间导航（月历+活跃度轴）+ 右侧媒体抽屉（横竖混合瀑布流）](docs/screenshot-archive.png)
+![管理页设置](docs/screenshot-setup.png)
+
+**档案页** —— 时间线 + 左侧时间导航（月历 / 活跃度轴）+ 右侧媒体抽屉：
+
+![档案页浏览](docs/screenshot-archive.png)
 
 ## 功能
 
