@@ -6,6 +6,10 @@
 
 > ⚠️ 本扩展为**非官方**的社区工具，与 Misskey 或 misskey.io 无隶属关系。
 
+![档案页：时间线 + 左侧时间导航 + 右侧媒体抽屉](docs/screenshot-main.png)
+
+![灯箱：滚轮切图 + 底部胶片条](docs/screenshot-lightbox.png)
+
 ## 功能
 
 - **一键抓取**：在 misskey.io 用户主页点击注入按钮即可开始；支持高效模式（仅含图帖子）与全覆盖模式（含回复图片）
