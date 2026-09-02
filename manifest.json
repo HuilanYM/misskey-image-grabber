@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Misskey Image Grabber",
   "short_name": "MK Grabber",
-  "version": "0.2.19",
+  "version": "0.2.21",
   "description": "抓取 misskey.io 用户发布的图片，生成可离线浏览的 HTML 档案（时间线 + 正文 + 图片）",
   "permissions": ["downloads", "storage", "unlimitedStorage", "tabs"],
   "host_permissions": [

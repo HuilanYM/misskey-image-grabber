@@ -6,6 +6,14 @@ A Chrome / Edge (MV3) browser extension that grabs images posted by a misskey.io
 
 > ⚠️ This is an **unofficial** community tool, not affiliated with Misskey or misskey.io.
 
+**Manager page** — three safety presets, grab scope & content filters, naming rules and save location:
+
+![Manager settings](docs/screenshot-setup.en.png)
+
+**Archive page** — timeline + time navigation (calendar / activity axis) on the left + media drawer on the right:
+
+![Browsing the archive](docs/screenshot-archive.en.png)
+
 ## Features
 
 - **One-click grabbing**: press the injected button on any misskey.io user page. Efficient mode (posts with images only) and Full mode (including reply images) are both supported
