@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Misskey Image Grabber</title>
+<link rel="stylesheet" href="manager.css">
+</head>
+<body>
+<svg style="display:none" aria-hidden="true"><defs>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3.5 17.5v-11a2 2 0 0 1 2-2h3.6l2.2 2.4h7.2a2 2 0 0 1 2 2v8.6a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"/></symbol>
+  <symbol id="i-package" viewBox="0 0 24 24"><path d="M12 3.2 20 7.4v9.2l-8 4.2-8-4.2V7.4l8-4.2z"/><path d="M4.3 7.6 12 11.6l7.7-4M12 11.6V21"/></symbol>
+  <symbol id="i-file" viewBox="0 0 24 24"><path d="M6.5 3.5h7L18.5 8.4v10.6a1.5 1.5 0 0 1-1.5 1.5H7a1.5 1.5 0 0 1-1.5-1.5V5a1.5 1.5 0 0 1 1.5-1.5z"/><path d="M13.5 3.8V8.5h4.7"/></symbol>
+  <symbol id="i-list" viewBox="0 0 24 24"><path d="M9 6.5h11M9 12h11M9 17.5h11"/><path d="M4.5 6.5h.01M4.5 12h.01M4.5 17.5h.01"/></symbol>
+  <symbol id="i-image" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="3"/><circle cx="9" cy="9.8" r="1.6"/><path d="M20.5 15.2l-4.1-4.1a1.6 1.6 0 0 0-2.3 0L7 18.2"/></symbol>
+  <symbol id="i-book" viewBox="0 0 24 24"><path d="M12 6.6C10.4 5.1 8 4.6 3.5 4.6v14.2c4.5 0 6.9.6 8.5 2.1 1.6-1.5 4-2.1 8.5-2.1V4.6c-4.5 0-6.9.5-8.5 2z"/><path d="M12 6.6v14.3"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m20.5 20.5-4.9-4.9"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 11.2a8 8 0 1 0-2.1 6.5"/><path d="M20 21.2v-4.4h-4.4"/></symbol>
+  <symbol id="i-stop" viewBox="0 0 24 24"><rect x="6.5" y="6.5" width="11" height="11" rx="2"/></symbol>
+  <symbol id="i-monitor" viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="13" rx="2"/><path d="M9 21h6M12 17.5V21"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3.5l7 2.6v5.2c0 4.4-3 7.6-7 9.2-4-1.6-7-4.8-7-9.2V6.1l7-2.6z"/></symbol>
+  <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.5"/><path d="M12 12h.01"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 20h16"/><path d="M7.5 20v-6M12 20V8.5M16.5 20v-9"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5.5l11 6.5-11 6.5z"/></symbol>
+</defs></svg>
+<header>
+  <h1>Misskey Image Grabber</h1>
+  <div class="sub" data-i18n="sub"></div>
+  <nav class="nav">
+    <button id="navNew" class="navbtn on"><svg class="ic"><use href="#i-plus"/></svg><span data-i18n="navNew"></span></button>
+    <button id="navHist" class="navbtn"><svg class="ic"><use href="#i-folder"/></svg><span data-i18n="navHist"></span></button>
+    <div id="tokenState" class="pill dim" title=""><i class="dot"></i><span>…</span></div>
+    <div class="langbox">
+      <span class="lang-label">Language · 语言 · 言語</span>
+      <select id="uiLang">
+        <option value="zh-CN">中文</option>
+        <option value="ja">日本語</option>
+        <option value="en">English</option>
+      </select>
+    </div>
+  </nav>
+</header>
+
+<div id="resumeBanner" class="banner hidden"></div>
+
+<section id="secSetup">
+  <div class="card">
+    <label class="big"><span data-i18n="target"></span>
+      <input id="userInput" data-i18n-ph="userPh" spellcheck="false">
+    </label>
+
+    <div class="grp">
+      <div class="gtitle"><svg class="ic"><use href="#i-shield"/></svg><span data-i18n="presetTitle"></span></div>
+      <div class="row">
+        <label style="flex:1"><span data-i18n="presetLabel"></span>
+          <select id="preset">
+            <option value="safest" data-i18n="presetSafest"></option>
+            <option value="balanced" selected data-i18n="presetBalanced"></option>
+            <option value="fast" data-i18n="presetFast"></option>
+          </select>
+        </label>
+      </div>
+      <div id="presetDesc" class="pdesc2"></div>
+      <div class="risknote" data-i18n="risknote"></div>
+    </div>
+
+    <div class="grp">
+      <div class="gtitle"><svg class="ic"><use href="#i-target"/></svg><span data-i18n="rangeTitle"></span></div>
+      <div class="modes">
+        <label class="radio"><input type="radio" name="mode" value="files" checked>
+          <div><b data-i18n="modeFiles"></b><small data-i18n="modeFilesDesc"></small></div>
+        </label>
+        <label class="radio"><input type="radio" name="mode" value="full">
+          <div><b data-i18n="modeFull"></b><small data-i18n="modeFullDesc"></small></div>
+        </label>
+      </div>
+      <div class="row">
+        <label><span data-i18n="paceLabel"></span>
+          <select id="pace">
+            <option value="safest" data-i18n="paceSafest"></option>
+            <option value="slow" data-i18n="paceSlow"></option>
+            <option value="normal" selected data-i18n="paceNormal"></option>
+            <option value="fast" data-i18n="paceFast"></option>
+          </select>
+        </label>
+        <label><span data-i18n="limitLabel"></span> <input id="limit" type="number" min="10" max="100" step="10" value="40"></label>
+        <label><span data-i18n="maxNotesLabel"></span> <input id="maxNotes" type="number" min="0" step="50" value="500"></label>
+        <label><span data-i18n="maxImagesLabel"></span> <input id="maxImages" type="number" min="0" step="100" value="0" data-i18n-title="unlimitedHint"></label>
+      </div>
+      <div class="row">
+        <label><span data-i18n="sinceLabel"></span> <input id="sinceDate" type="date" data-i18n-title="sinceTitle"></label>
+        <label><span data-i18n="untilLabel"></span> <input id="untilDate" type="date" data-i18n-title="untilTitle"></label>
+        <label class="chk"><input id="withRenotes" type="checkbox"> <span data-i18n="withRenotes"></span></label>
+        <label class="chk"><input id="onlyOriginal" type="checkbox"> <span data-i18n="onlyOriginal"></span></label>
+      </div>
+    </div>
+
+    <div class="grp">
+      <div class="gtitle"><svg class="ic"><use href="#i-search"/></svg><span data-i18n="filterTitle"></span></div>
+      <div class="row">
+        <div class="fmts"><span data-i18n="fmtLabel"></span>
+          <label class="chk"><input class="fmt" type="checkbox" value="jpg" checked> JPG</label>
+          <label class="chk"><input class="fmt" type="checkbox" value="png" checked> PNG</label>
+          <label class="chk"><input class="fmt" type="checkbox" value="gif" checked> GIF</label>
+          <label class="chk"><input class="fmt" type="checkbox" value="webp" checked> WebP</label>
+          <label class="chk"><input class="fmt" type="checkbox" value="avif" checked> AVIF</label>
+        </div>
+      </div>
+      <div class="row">
+        <label><span data-i18n="minWLabel"></span> <input id="minW" type="number" min="0" step="100" value="0" data-i18n-title="minWTitle"></label>
+        <label><span data-i18n="minHLabel"></span> <input id="minH" type="number" min="0" step="100" value="0" data-i18n-title="unlimitedHint"></label>
+        <label><span data-i18n="minKBLabel"></span> <input id="minKB" type="number" min="0" step="10" value="0" data-i18n-title="unlimitedHint"></label>
+        <label class="chk"><input id="skipSensitive" type="checkbox"> <span data-i18n="skipSensitive"></span></label>
+      </div>
+    </div>
+
+    <div class="grp">
+      <div class="gtitle"><svg class="ic"><use href="#i-folder"/></svg><span data-i18n="nameTitle"></span></div>
+      <div class="row">
+        <label><span data-i18n="tplLabel"></span>
+          <select id="nameTemplate">
+            <option value="datetime" selected data-i18n="tplDatetime"></option>
+            <option value="noteid" data-i18n="tplNoteid"></option>
+            <option value="date" data-i18n="tplDate"></option>
+            <option value="orig" data-i18n="tplOrig"></option>
+          </select>
+        </label>
+        <label><span data-i18n="groupLabel"></span>
+          <select id="groupBy">
+            <option value="none" selected data-i18n="groupNone"></option>
+            <option value="year" data-i18n="groupYear"></option>
+            <option value="month" data-i18n="groupMonth"></option>
+          </select>
+        </label>
+      </div>
+    </div>
+
+    <div class="grp">
+      <div class="gtitle"><svg class="ic"><use href="#i-chart"/></svg><span data-i18n="archTitle"></span></div>
+      <div class="row">
+        <label><span data-i18n="orderLabel"></span>
+          <select id="archiveOrder">
+            <option value="newfirst" selected data-i18n="orderNew"></option>
+            <option value="oldfirst" data-i18n="orderOld"></option>
+          </select>
+        </label>
+        <label><span data-i18n="mediaPaceLabel"></span>
+          <select id="mediaPace">
+            <option value="gentle" data-i18n="mpGentle"></option>
+            <option value="normal" selected data-i18n="mpNormal"></option>
+            <option value="fast" data-i18n="mpFast"></option>
+          </select>
+        </label>
+        <label class="chk"><input id="revealSens" type="checkbox"> <span data-i18n="revealSens"></span></label>
+        <label class="chk"><input id="skipOwned" type="checkbox" checked> <span data-i18n="skipOwned"></span></label>
+      </div>
+      <div class="row">
+        <label><span data-i18n="saveLabel"></span>
+          <select id="saveTarget">
+            <option value="downloads" selected data-i18n="saveDownloads"></option>
+            <option value="folder" data-i18n="saveFolder"></option>
+          </select>
+        </label>
+        <label><span data-i18n="archLangLabel"></span>
+          <select id="archiveLang">
+            <option value="auto" selected data-i18n="archLangAuto"></option>
+            <option value="zh-CN">中文</option>
+            <option value="ja">日本語</option>
+            <option value="en">English</option>
+          </select>
+        </label>
+        <button id="pickDir" type="button" style="align-self:flex-end" data-i18n="pickDir"></button>
+        <span id="dirName" class="dim2" data-i18n="dirNone"></span>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button id="btnStart" class="primary"><svg class="ic"><use href="#i-play"/></svg><span data-i18n="startBtn"></span></button>
+    </div>
+    <div id="setupMsg" class="msg"></div>
+  </div>
+  <div class="tips" data-i18n="tips"></div>
+</section>
+
+<section id="secProgress" class="hidden">
+  <div class="card">
+    <div class="stats">
+      <div class="stat"><span data-i18n="stReq"></span><b id="stReq">0</b></div>
+      <div class="stat"><span data-i18n="stNotes"></span><b id="stNotes">0</b></div>
+      <div class="stat"><span data-i18n="stImgs"></span><b id="stImgs">0</b></div>
+    </div>
+    <div class="bar" id="crawlBarWrap"><i id="crawlBar"></i></div>
+    <div class="progressMeta"><span id="elapsed"></span><span id="pct"></span></div>
+    <div id="statusLine"></div>
+    <div class="actions">
+      <button id="btnPause" data-i18n="pause"></button>
+      <button id="btnStop" class="warn"><svg class="ic"><use href="#i-stop"/></svg><span data-i18n="stop"></span></button>
+    </div>
+    <div id="thumbs" class="thumbs"></div>
+  </div>
+</section>
+
+<section id="secExport" class="hidden">
+  <div class="card">
+    <div id="crawlSummary" class="summary"></div>
+    <div class="selbar">
+      <button id="selAll" class="mini" data-i18n="selAll"></button>
+      <button id="selNone" class="mini" data-i18n="selNone"></button>
+      <button id="selSafe" class="mini" data-i18n="selSafe"></button>
+      <button id="selNew" class="mini" data-i18n="selNew"></button>
+      <span id="selInfo"></span>
+    </div>
+    <div id="fileGrid" class="fgrid"></div>
+
+    <div class="exbar">
+      <button class="primary" data-ex="update"><svg class="ic"><use href="#i-book"/></svg><span data-i18n="exUpdate"></span></button>
+      <button data-ex="archiveZip"><svg class="ic"><use href="#i-package"/></svg><span data-i18n="exZip"></span></button>
+      <button data-ex="archiveFolder"><svg class="ic"><use href="#i-folder"/></svg><span data-i18n="exFolder"></span></button>
+      <button data-ex="single"><svg class="ic"><use href="#i-file"/></svg><span data-i18n="exSingle"></span></button>
+      <button data-ex="imagesZip"><svg class="ic"><use href="#i-image"/></svg><span data-i18n="exImagesZip"></span></button>
+      <button data-ex="meta"><svg class="ic"><use href="#i-list"/></svg><span data-i18n="exMeta"></span></button>
+    </div>
+
+    <div id="exProgress" class="hidden">
+      <div class="bar"><i id="exBar"></i></div>
+      <span id="exText"></span>
+    </div>
+    <div id="exLog" class="log"></div>
+    <div class="actions"><button id="btnBack" data-i18n="back"></button></div>
+  </div>
+</section>
+
+<section id="secHistory" class="hidden">
+  <div class="card">
+    <div class="selbar">
+      <b style="color:var(--text)" data-i18n="histTitle"></b>
+      <span class="dim2" id="histSummary"></span>
+      <span style="flex:1"></span>
+      <input type="file" id="histFile" accept=".json,application/json" hidden>
+      <button id="btnOpenDl" class="mini" data-i18n-title="btnOpenDlTitle"><svg class="ic"><use href="#i-folder"/></svg><span data-i18n="btnOpenDl"></span></button>
+      <button id="histImport" class="mini"><svg class="ic"><use href="#i-folder"/></svg><span data-i18n="histImport"></span></button>
+      <button id="histRecover" class="mini" data-i18n-title="histRecoverTitle"><svg class="ic"><use href="#i-search"/></svg><span data-i18n="histRecover"></span></button>
+      <button id="histRegenDisk" class="mini" data-i18n-title="histRegenDiskTitle"><svg class="ic"><use href="#i-refresh"/></svg><span data-i18n="histRegenDisk"></span></button>
+      <button id="histExport" class="mini" data-i18n="histExport"></button>
+      <button id="histClear" class="mini" style="color:var(--warn)" data-i18n="histClear"></button>
+    </div>
+    <table class="hist" id="histTable">
+      <thead><tr><th data-i18n="thUser"></th><th data-i18n="thFiles"></th><th data-i18n="thLast"></th><th data-i18n="thAct"></th></tr></thead>
+      <tbody></tbody>
+    </table>
+    <div id="histEmpty" class="dim2" style="padding:20px 0;text-align:center" data-i18n="histEmpty"></div>
+  </div>
+</section>
+
+<footer data-i18n="footer"></footer>
+<script type="module" src="manager.js"></script>
+</body>
+</html>

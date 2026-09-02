@@ -1,0 +1,12 @@
+# 测试与本地产物（不入库）
+_*
+edge-profile*
+*.zip
+downloads/
+out/
+out2/
+bh-test/
+_backup*
+# 系统文件
+Thumbs.db
+.DS_Store

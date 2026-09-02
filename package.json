@@ -1,0 +1,15 @@
+{
+  "name": "misskey-image-grabber",
+  "version": "0.2.17",
+  "private": true,
+  "type": "module",
+  "description": "Grab a misskey.io user's images and build a browsable offline HTML timeline archive",
+  "scripts": {
+    "test": "node --test test/",
+    "check": "node --check lib/render.js && node --check lib/i18n.js && node --check content.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {}
+}
