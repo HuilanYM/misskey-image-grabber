@@ -74,6 +74,7 @@ const I18N = {
     wn0222: '媒体抽屉新增双视图：瀑布流欣赏原图比例；新增「时间」视图，按发布月份分组（月栏吸顶），位置即发布顺序，可随时切换',
     wn0223: '「时间」视图图片放大：行高随抽屉宽度自适应（约与瀑布流同级的阅览尺寸），日期角标改为常显',
     wn0224: '启动页改版：更新日志移到首屏（默认展示最近 2 条，可一键展开全部），「开始使用」按钮移到页面顶部',
+    wn0225: '更新日志默认收起：更新后打开启动页不再自动展开全部，始终默认显示最近 2 条',
     wn010: '首个版本：抓取 · 低风控预设 · 离线 HTML 档案',
     legal: '本工具仅供个人备份与存档。请控制抓取量级与频率、遵守实例规则；数据与图片版权归原作者所有。',
     cta: '开始使用 →',
@@ -135,6 +136,7 @@ const I18N = {
     wn0222: 'メディアドロワーに 2 つのビュー：瀑布流でアスペクト比を楽しみ、「時間」ビュー（月別グループ＋月バー固定、位置＝投稿順）にいつでも切替',
     wn0223: '「時間」ビューの画像を拡大：行の高さがドロワー幅に連動（瀑布流と同程度の閲覧サイズ）、日付バッジは常時表示に',
     wn0224: 'スタートページを刷新：更新履歴を先頭に移動（最新 2 件を表示、ワンタップで全件展開）、「始める」ボタンをページ最上部へ',
+    wn0225: '更新履歴は既定で折りたたみ：更新後にスタートページを開いても全件自動展開せず、常に最新 2 件のみ表示',
     legal: '本ツールは個人用のバックアップとアーカイブ目的にのみ使用してください。取得量と頻度を控えめにし、インスタンスのルールを守ってください。データと画像の著作権は各作者に帰属します。',
     cta: '開始する →',
   },
@@ -195,6 +197,7 @@ const I18N = {
     wn0222: 'Media drawer now has two views: the flow for original aspect ratios, and a "Time" view grouped by posting month (sticky month bars) where position follows posting order',
     wn0223: 'Larger images in the "Time" view: row height now adapts to the drawer width (roughly matching the flow view), and date badges are always visible',
     wn0224: 'Start page redesigned: the changelog now sits at the top (latest 2 entries, expandable) and the "Get started" button moved to the first screen',
+    wn0225: 'The changelog now defaults to collapsed: opening the start page after an update no longer auto-expands it — always the latest 2 entries until you expand',
     legal: 'For personal backup and archiving only. Keep crawl volume and frequency reasonable and follow instance rules. All data and images belong to their original authors.',
     cta: 'Get started →',
   },
@@ -316,10 +319,9 @@ async function init() {
     window.close();
   });
 
-  // 更新弹窗入口（扩展更新时 background 带 #whatsnew 打开）：自动全展开并滚到该卡
+  // 更新弹窗入口（扩展更新时 background 带 #whatsnew 打开）：仅滚动定位到该卡；
+  // 日志无论首次还是更新进入一律默认收起（最近 2 条），想看全部用户自己点开
   if (location.hash === '#whatsnew') {
-    wnList.classList.add('open');
-    syncWn();
     $('wncard').scrollIntoView({ block: 'center' });
   }
 }
