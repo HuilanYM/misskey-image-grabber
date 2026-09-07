@@ -26,7 +26,38 @@
     </div>
   </header>
 
-  <section class="hero"><p data-i18n="subtitle"></p></section>
+  <section class="hero"><p data-i18n="subtitle"></p><button id="btnStart" class="big primary hero-cta" data-i18n="cta"></button></section>
+
+  <section class="card wncard" id="wncard">
+    <h2 class="wn-h"><span data-i18n="whatsnew"></span><button id="wnToggle" class="mini"></button></h2>
+    <ul class="plain wnlist" id="wnList">
+      <li><b>v0.2.24</b> — <span data-i18n="wn0224"></span></li>
+      <li><b>v0.2.23</b> — <span data-i18n="wn0223"></span></li>
+      <li class="wn-old"><b>v0.2.22</b> — <span data-i18n="wn0222"></span></li>
+      <li class="wn-old"><b>v0.2.21</b> — <span data-i18n="wn0221"></span></li>
+      <li class="wn-old"><b>v0.2.19</b> — <span data-i18n="wn0219"></span></li>
+      <li class="wn-old"><b>v0.2.18</b> — <span data-i18n="wn0218"></span></li>
+      <li class="wn-old"><b>v0.2.17</b> — <span data-i18n="wn0217"></span></li>
+      <li class="wn-old"><b>v0.2.16</b> — <span data-i18n="wn0216"></span></li>
+      <li class="wn-old"><b>v0.2.15</b> — <span data-i18n="wn0215"></span></li>
+      <li class="wn-old"><b>v0.2.14</b> — <span data-i18n="wn0214"></span></li>
+      <li class="wn-old"><b>v0.2.13</b> — <span data-i18n="wn0213"></span></li>
+      <li class="wn-old"><b>v0.2.12</b> — <span data-i18n="wn0212"></span></li>
+      <li class="wn-old"><b>v0.2.11</b> — <span data-i18n="wn0211"></span></li>
+      <li class="wn-old"><b>v0.2.10</b> — <span data-i18n="wn0210"></span></li>
+      <li class="wn-old"><b>v0.2.9</b> — <span data-i18n="wn029"></span></li>
+      <li class="wn-old"><b>v0.2.8</b> — <span data-i18n="wn028"></span></li>
+      <li class="wn-old"><b>v0.2.7</b> — <span data-i18n="wn027"></span></li>
+      <li class="wn-old"><b>v0.2.6</b> — <span data-i18n="wn026"></span></li>
+      <li class="wn-old"><b>v0.2.5</b> — <span data-i18n="wn025"></span></li>
+      <li class="wn-old"><b>v0.2.4</b> — <span data-i18n="wn024"></span></li>
+      <li class="wn-old"><b>v0.2.3</b> — <span data-i18n="wn023"></span></li>
+      <li class="wn-old"><b>v0.2.2</b> — <span data-i18n="wn022"></span></li>
+      <li class="wn-old"><b>v0.2.1</b> — <span data-i18n="wn021"></span></li>
+      <li class="wn-old"><b>v0.2.0</b> — <span data-i18n="wn020"></span></li>
+      <li class="wn-old"><b>v0.1.0</b> — <span data-i18n="wn010"></span></li>
+    </ul>
+  </section>
 
   <section class="card">
     <h2><svg class="ic" style="color:var(--accent)"><use href="#i-launch"/></svg><span data-i18n="stepsTitle"></span></h2>
@@ -87,40 +118,9 @@
       <div><span data-i18n="author"></span><b id="author"></b></div>
       <div><span data-i18n="repo"></span><a id="repo" href="#" target="_blank" rel="noopener noreferrer"></a></div>
     </div>
-    <details id="whatsnewBox">
-      <summary data-i18n="whatsnew"></summary>
-      <ul class="plain">
-        <li><b>v0.2.0</b> — <span data-i18n="wn020"></span></li>
-        <li><b>v0.2.1</b> — <span data-i18n="wn021"></span></li>
-        <li><b>v0.2.2</b> — <span data-i18n="wn022"></span></li>
-        <li><b>v0.2.3</b> — <span data-i18n="wn023"></span></li>
-        <li><b>v0.2.4</b> — <span data-i18n="wn024"></span></li>
-        <li><b>v0.2.5</b> — <span data-i18n="wn025"></span></li>
-        <li><b>v0.2.6</b> — <span data-i18n="wn026"></span></li>
-        <li><b>v0.2.7</b> — <span data-i18n="wn027"></span></li>
-        <li><b>v0.2.8</b> — <span data-i18n="wn028"></span></li>
-        <li><b>v0.2.9</b> — <span data-i18n="wn029"></span></li>
-        <li><b>v0.2.10</b> — <span data-i18n="wn0210"></span></li>
-        <li><b>v0.2.11</b> — <span data-i18n="wn0211"></span></li>
-        <li><b>v0.2.12</b> — <span data-i18n="wn0212"></span></li>
-        <li><b>v0.2.13</b> — <span data-i18n="wn0213"></span></li>
-        <li><b>v0.2.14</b> — <span data-i18n="wn0214"></span></li>
-        <li><b>v0.2.15</b> — <span data-i18n="wn0215"></span></li>
-        <li><b>v0.2.16</b> — <span data-i18n="wn0216"></span></li>
-        <li><b>v0.2.17</b> — <span data-i18n="wn0217"></span></li>
-        <li><b>v0.2.18</b> — <span data-i18n="wn0218"></span></li>
-        <li><b>v0.2.19</b> — <span data-i18n="wn0219"></span></li>
-        <li><b>v0.2.21</b> — <span data-i18n="wn0221"></span></li>
-        <li><b>v0.2.22</b> — <span data-i18n="wn0222"></span></li>
-        <li><b>v0.2.23</b> — <span data-i18n="wn0223"></span></li>
-        <li><b>v0.1.0</b> — <span data-i18n="wn010"></span></li>
-      </ul>
-    </details>
   </section>
 
   <section class="card legal"><p data-i18n="legal"></p></section>
-
-  <div class="cta"><button id="btnStart" class="big primary" data-i18n="cta"></button></div>
 </div>
 <script src="onboarding.js" type="module"></script>
 </body>

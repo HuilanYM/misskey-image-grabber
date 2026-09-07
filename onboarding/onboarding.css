@@ -20,8 +20,18 @@ select { background: var(--panel2); border: 1px solid var(--line); color: var(--
 .langbox { display: flex; align-items: center; gap: 8px; }
 .lang-label { color: var(--dim); font-size: 11.5px; letter-spacing: 0.5px; }
 
-.hero { margin: 16px 0 6px; }
-.hero p { margin: 0; color: var(--dim); font-size: 15px; }
+.hero { margin: 16px 0 6px; display: flex; align-items: center; gap: 12px 16px; flex-wrap: wrap; }
+.hero p { flex: 1 1 320px; margin: 0; color: var(--dim); font-size: 15px; }
+.hero-cta { width: auto; flex: none; padding: 11px 24px; }
+
+/* 更新日志卡：紧凑，默认只露最近 2 条 */
+.wn-h { display: flex; align-items: center; gap: 10px; }
+.wn-h button { margin-left: auto; }
+.wnlist { margin: 0; }
+.wnlist li { font-size: 12.6px; padding: 2px 0; color: var(--dim); }
+.wnlist li b { color: var(--text); margin-right: 2px; }
+.wnlist li.wn-old { display: none; }
+.wnlist.open li.wn-old { display: list-item; }
 
 .card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; margin: 14px 0; }
 .card h2 { margin: 0 0 12px; font-size: 15px; }

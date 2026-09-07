@@ -49,6 +49,7 @@ const I18N = {
     author: '作者',
     repo: '仓库',
     whatsnew: '更新日志',
+    wnExpand: '展开全部 · 共 {n} 条', wnCollapse: '收起',
     wn020: '启动页 · 增量档案（本地镜像）· 媒体抽屉 · 灯箱重设计 · 过往记录与扫描档案库',
     wn021: '修复重启后重建失败 · 独立的按文件夹重建 · 过滤全排除时提前停止 · 三语化完善',
     wn022: '图片抽屉按图片去重并归属首发笔记（时间与跳转以首发为准）',
@@ -72,6 +73,7 @@ const I18N = {
     wn0221: '档案页界面三语补全：笔记角标（回复/引用/本地）、头部说明与按钮提示在日语/英语档案下不再残留中文',
     wn0222: '媒体抽屉新增双视图：瀑布流欣赏原图比例；新增「时间」视图，按发布月份分组（月栏吸顶），位置即发布顺序，可随时切换',
     wn0223: '「时间」视图图片放大：行高随抽屉宽度自适应（约与瀑布流同级的阅览尺寸），日期角标改为常显',
+    wn0224: '启动页改版：更新日志移到首屏（默认展示最近 2 条，可一键展开全部），「开始使用」按钮移到页面顶部',
     wn010: '首个版本：抓取 · 低风控预设 · 离线 HTML 档案',
     legal: '本工具仅供个人备份与存档。请控制抓取量级与频率、遵守实例规则；数据与图片版权归原作者所有。',
     cta: '开始使用 →',
@@ -108,6 +110,7 @@ const I18N = {
     author: '開発者',
     repo: 'リポジトリ',
     whatsnew: '更新履歴',
+    wnExpand: 'すべて表示 · 全 {n} 件', wnCollapse: '折りたたむ',
     wn020: 'スタートページ · 増分アーカイブ · メディアドロワー · ライトボックス刷新 · 履歴とアーカイブスキャン',
     wn021: '再起動後の再生成失敗を修正 · フォルダ選択での再構築 · 全排除フィルタの早期停止 · 多言語化改善',
     wn022: '画像ドロワーを画像単位に重複排除し、初出ノートに帰属（日時とジャンプは初出基準）',
@@ -131,6 +134,7 @@ const I18N = {
     wn0221: 'アーカイブページの UI を日英完全対応：ノートのバッジ（返信/引用/ローカル）・ヘッダー説明・ボタンのツールチップが日本語/英語アーカイブでも正しく表示',
     wn0222: 'メディアドロワーに 2 つのビュー：瀑布流でアスペクト比を楽しみ、「時間」ビュー（月別グループ＋月バー固定、位置＝投稿順）にいつでも切替',
     wn0223: '「時間」ビューの画像を拡大：行の高さがドロワー幅に連動（瀑布流と同程度の閲覧サイズ）、日付バッジは常時表示に',
+    wn0224: 'スタートページを刷新：更新履歴を先頭に移動（最新 2 件を表示、ワンタップで全件展開）、「始める」ボタンをページ最上部へ',
     legal: '本ツールは個人用のバックアップとアーカイブ目的にのみ使用してください。取得量と頻度を控えめにし、インスタンスのルールを守ってください。データと画像の著作権は各作者に帰属します。',
     cta: '開始する →',
   },
@@ -166,6 +170,7 @@ const I18N = {
     author: 'Author',
     repo: 'Repository',
     whatsnew: 'What\'s new',
+    wnExpand: 'Show all · {n} entries', wnCollapse: 'Collapse',
     wn020: 'Onboarding · Incremental archive (local mirror) · Media drawer · Lightbox redesign · History & library scan',
     wn021: 'Fixed rebuild-after-restart crash · standalone folder rebuild · early stop when filters exclude all · i18n polish',
     wn022: 'Media drawer deduplicated per image, anchored to the first note (dates & jump follow the original post)',
@@ -189,6 +194,7 @@ const I18N = {
     wn0221: 'Archive page UI completed for Japanese/English: note badges (Reply/Quote/Local), the header note and button tooltips no longer fall back to Chinese',
     wn0222: 'Media drawer now has two views: the flow for original aspect ratios, and a "Time" view grouped by posting month (sticky month bars) where position follows posting order',
     wn0223: 'Larger images in the "Time" view: row height now adapts to the drawer width (roughly matching the flow view), and date badges are always visible',
+    wn0224: 'Start page redesigned: the changelog now sits at the top (latest 2 entries, expandable) and the "Get started" button moved to the first screen',
     legal: 'For personal backup and archiving only. Keep crawl volume and frequency reasonable and follow instance rules. All data and images belong to their original authors.',
     cta: 'Get started →',
   },
@@ -234,7 +240,18 @@ async function init() {
     lang = $('lang').value;
     try { await chrome.storage.local.set({ 'mg:lang': lang }); } catch (e) { /* 上下文失效等 */ }
     applyLang();
+    syncWn();
   });
+
+  // 更新日志：默认只露最近 2 条，点开看全部（计数动态统计，加版本自动更新）
+  const wnList = $('wnList'), wnToggle = $('wnToggle');
+  const wnCount = wnList.children.length;
+  const syncWn = () => {
+    const open = wnList.classList.contains('open');
+    wnToggle.textContent = (open ? I18N[lang]['wnCollapse'] : I18N[lang]['wnExpand']).replace('{n}', String(wnCount));
+  };
+  wnToggle.addEventListener('click', () => { wnList.classList.toggle('open'); syncWn(); });
+  syncWn();
 
   // 状态自检：经 misskey.io 内容脚本扫描登录 token
   (async () => {
@@ -299,10 +316,11 @@ async function init() {
     window.close();
   });
 
-  // 更新日志定位
+  // 更新弹窗入口（扩展更新时 background 带 #whatsnew 打开）：自动全展开并滚到该卡
   if (location.hash === '#whatsnew') {
-    $('whatsnewBox').open = true;
-    $('whatsnewBox').scrollIntoView({ block: 'center' });
+    wnList.classList.add('open');
+    syncWn();
+    $('wncard').scrollIntoView({ block: 'center' });
   }
 }
 
