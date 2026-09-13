@@ -11,7 +11,7 @@ import * as history from '../lib/history.js';
 import * as archstore from '../lib/archstore.js';
 import { supportsDirPicker, pickDirectory, loadHandle, hasPermission, requestPermission, writeFileIn, fileExists, listEntries, readFileText } from './dirhandle.js';
 import { recoverUserFromPayload } from '../lib/recover.js';
-import { sleep, rand, sanitizeFilename, imageFileName, noteImages, filePasses, fmtBytes, hash6 } from '../lib/util.js';
+import { sleep, rand, sanitizeFilename, imageFileName, noteImages, filePasses, fmtBytes, hash6, hasTextContent } from '../lib/util.js';
 
 const $ = (id) => document.getElementById(id);
 const enc = new TextEncoder();
@@ -231,13 +231,13 @@ function applyPreset(key) {
 }
 
 function readForm() {
-  const mode = document.querySelector('input[name=mode]:checked').value;
+  const contentType = (document.querySelector('input[name=contentType]:checked') || { value: 'image' }).value;
   const since = $('sinceDate').value ? new Date($('sinceDate').value + 'T00:00:00').getTime() : 0;
   const until = $('untilDate').value ? new Date($('untilDate').value + 'T23:59:59').getTime() : 0;
   const allFmts = ['jpg', 'png', 'gif', 'webp', 'avif'];
   const fmts = Array.from(document.querySelectorAll('.fmt:checked')).map((c) => c.value);
   return {
-    mode,
+    contentType,
     pace: $('pace').value,
     preset: $('preset').value,
     limit: Math.min(100, Math.max(10, Number($('limit').value) || 40)),
@@ -271,7 +271,11 @@ function msToDate(ms) { // 存储的是本地毫秒，回填 input[type=date] �
 
 function fillForm(s) {
   if (s.user) $('userInput').value = s.user;
-  if (s.mode) document.querySelector(`input[name=mode][value=${s.mode}]`).checked = true;
+  if (s.contentType) {
+    // 旧版 settings 里没有 contentType（或存的是旧 mode 值）→ 保持 HTML 默认的 image
+    const ctRadio = document.querySelector(`input[name=contentType][value=${s.contentType}]`);
+    if (ctRadio) ctRadio.checked = true;
+  }
   if (s.pace) $('preset').value = s.preset;
   if (s.pace) $('pace').value = s.pace;
   if (s.limit) $('limit').value = s.limit;
@@ -333,6 +337,8 @@ function crawlHooks() {
   };
 }
 
+let maxNotesAutoN = 0; // 非图片模式下按用户笔记总数自动放宽 maxNotes 的结果（0=未放宽），用于抓取摘要提示
+
 async function startCrawl(input) {
   aborted = false; // 上一次「停止」的标志必须在此清掉，否则本会话内所有后续抓取都会秒失败
   const opts = readForm();
@@ -355,6 +361,17 @@ async function startCrawl(input) {
     return;
   }
 
+  // 非图片模式：按用户笔记总数自动放宽 maxNotes（含 200 条预留），旧的图片时代默认值不再截断文字流
+  maxNotesAutoN = 0;
+  if (opts.contentType !== 'image' && opts.maxNotes > 0) {
+    const total = (ru.user && ru.user.notesCount) || 0;
+    const eff = total + 200;
+    if (eff > opts.maxNotes) {
+      opts.maxNotes = eff;
+      maxNotesAutoN = eff;
+    }
+  }
+
   task = {
     user: ru.user,
     opts,
@@ -370,6 +387,8 @@ async function startCrawl(input) {
 async function resumeCrawl() {
   aborted = false; // 同 startCrawl：续抓入口也要清掉上一次「停止」的标志
   const opts = task.opts;
+  if (!opts.contentType) opts.contentType = 'image'; // 旧任务升级兼容：缺省按仅图片
+  maxNotesAutoN = 0; // 续抓时 opts.maxNotes 已在创建时放宽过，不再重复提示
   crawler = new Crawler({ api, opts, state: task.state, hooks: crawlHooks(), lang: uiLang });
   show('secProgress');
   startElapsed();
@@ -402,13 +421,14 @@ async function runCrawler() {
   await store.saveTask(task);
 
   const reasonText = T('r_' + r.reason) !== 'r_' + r.reason ? T('r_' + r.reason) : r.reason;
+  const autoTxt = maxNotesAutoN ? ' · ' + T('logMaxNotesAuto', { n: maxNotesAutoN }) : '';
   $('crawlSummary').textContent = T('summary', {
     user: task.user.username,
     n: task.state.notes.length,
     m: collectFiles(task.state.notes, task.opts).length,
     k: task.state.requests,
     reason: reasonText + (r.message ? ' · ' + r.message : ''),
-  });
+  }) + autoTxt;
 
   if (r.reason === 'error' || r.reason === 'ratelimited') {
     setStatus(T('taskSaved') + (r.message || ''), true);
@@ -841,12 +861,13 @@ async function doExport(mode) {
       ? assets.avatar ? `data:image/${assets.avatarExt || 'png'};base64,${b64(assets.avatar)}` : null
       : assets.avatar && avatarLocalName() ? 'images/' + avatarLocalName() + '.' + assets.avatarExt : null;
 
-    const meta = { crawlAt: new Date().toLocaleString(uiLang === 'en' ? 'en-US' : uiLang), note: T(task.opts.mode === 'full' ? 'modeFullTag' : 'modeFilesTag') + ' · ' + T('apiCount').replace('{k}', task.state.requests) };
+    const CT_TAG = { all: 'ctAll', image: 'ctImage', article: 'ctArticle', renote: 'ctRenote' };
+    const meta = { crawlAt: new Date().toLocaleString(uiLang === 'en' ? 'en-US' : uiLang), note: T(CT_TAG[task.opts.contentType || 'image']) + ' · ' + T('apiCount').replace('{k}', task.state.requests) };
     // 只保留至少含一张"已成功落地"图片的笔记，且笔记内只保留已落地图——避免档案里出现死链
     const okSet = new Set(okItems.map((it) => it.file.id));
     const notesForHtml = task.state.notes
       .map((n) => ({ ...n, files: noteImages(n, task.opts).filter((f) => okSet.has(f.id)) }))
-      .filter((n) => n.files.length > 0);
+      .filter((n) => n.files.length > 0 || hasTextContent(n));
     const nameMap = new Map(okItems.map((it) => [it.file.id, it]));
     const html = buildArchiveHtml({
       user: task.user,
@@ -921,7 +942,7 @@ async function exportFolder(selItems, w, sub) {
   const selSet = new Set(selItems.map((it) => it.file.id));
   const notesForHtml = task.state.notes
     .map((n) => ({ ...n, files: noteImages(n, task.opts).filter((f) => selSet.has(f.id)) }))
-    .filter((n) => n.files.length > 0);
+    .filter((n) => n.files.length > 0 || hasTextContent(n));
   const html = buildArchiveHtml({
     user: task.user,
     notes: notesForHtml,
@@ -1026,7 +1047,7 @@ async function updateArchive(selItems, w) {
   const have = new Set([...owned, ...map.keys()]);
   const notesForHtml = merged
     .map((n) => ({ ...n, files: noteImages(n, task.opts).filter((f) => have.has(f.id)) }))
-    .filter((n) => n.files.length > 0);
+    .filter((n) => n.files.length > 0 || hasTextContent(n));
   // 全量路径映射（含旧笔记文件），保证引用名与磁盘一致
   const allItems = collectFiles(merged, task.opts);
   const allPaths = new Map(allItems.map((it) => [it.file.id, it.localName]));
@@ -1312,7 +1333,7 @@ async function rebuildArchiveFor(meta, btn) {
     const owned = await history.ownedSet(meta.userId);
     const allItems = collectFiles(notes, collectOpts);
     const have = new Set(allItems.filter((it) => owned.has(it.file.id)).map((it) => it.file.id));
-    const notesForHtml = notes.filter((n) => noteImages(n, collectOpts).some((f) => have.has(f.id)));
+    const notesForHtml = notes.filter((n) => noteImages(n, collectOpts).some((f) => have.has(f.id)) || hasTextContent(n));
     const allPaths = new Map(allItems.map((it) => [it.file.id, it.localName]));
 
     // 表情：存储的 名称键→URL + URL→本地文件
@@ -1544,10 +1565,10 @@ async function refreshResumeBanner() {
 
 async function init() {
   const settings = await store.loadSettings();
-  fillForm(settings);
   uiLang = normalizeLang((await chrome.storage.local.get('mg:lang'))['mg:lang'] || detectUiLang()); // 未设置时跟随浏览器语言
   $('uiLang').value = uiLang;
   applyI18n();
+  fillForm(settings); // uiLang 就绪后再填表：presetDesc 等动态文案要用对语言（先填会残留 zh-CN）
   $('uiLang').addEventListener('change', async () => {
     uiLang = normalizeLang($('uiLang').value);
     await chrome.storage.local.set({ 'mg:lang': uiLang });

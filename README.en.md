@@ -16,11 +16,11 @@ A Chrome / Edge (MV3) browser extension that grabs images posted by a misskey.io
 
 ## Features
 
-- **One-click grabbing**: press the injected button on any misskey.io user page. Efficient mode (posts with images only) and Full mode (including reply images) are both supported
+- **One-click grabbing**: press the injected button on any misskey.io user page, with four content types — **All / Images only / Posts / Renotes** — covering the whole timeline (text posts, replies and channel notes included)
 - **Low-footprint design**: requests go through your own logged-in page context (same origin/session as normal browsing) with human-like randomized pacing, periodic long pauses, batch rests, and exponential backoff on rate limits. **It cannot and does not try to be "invisible"** — cap your volume with the built-in limits
 - **Incremental archive**: repeated exports only download new images and keep merging into the same `archive.html`
 - **Six export modes**: update local archive (main path) / HTML snapshot ZIP / folder snapshot / single-file HTML (images embedded) / images-only ZIP / metadata (JSON+CSV)
-- **Offline archive page**: media drawer grid, lightbox (wheel to switch), calendar & activity timeline navigation, full-text search, sensitive-content blur (misskey-style CSS), dark/light themes, tri-lingual UI (EN/JA/ZH)
+- **Offline archive page**: mixed text-and-image timeline (text notes, renote cards, poll snapshots), media drawer grid, lightbox (wheel to switch), calendar & activity timeline navigation, full-text search, sensitive-content blur (misskey-style CSS), dark/light themes, tri-lingual UI (EN/JA/ZH)
 - **Download history**: history table, JSON import/export, on-disk library scan, and archive HTML rebuild without extension records
 
 ## Install (developer mode)

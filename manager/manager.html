@@ -51,6 +51,24 @@
     </label>
 
     <div class="grp">
+      <div class="gtitle"><svg class="ic"><use href="#i-target"/></svg><span data-i18n="contentTypeTitle"></span></div>
+      <div class="modes">
+        <label class="radio"><input type="radio" name="contentType" value="all">
+          <div><b data-i18n="ctAll"></b><small data-i18n="ctAllDesc"></small></div>
+        </label>
+        <label class="radio"><input type="radio" name="contentType" value="image" checked>
+          <div><b data-i18n="ctImage"></b><small data-i18n="ctImageDesc"></small></div>
+        </label>
+        <label class="radio"><input type="radio" name="contentType" value="article">
+          <div><b data-i18n="ctArticle"></b><small data-i18n="ctArticleDesc"></small></div>
+        </label>
+        <label class="radio"><input type="radio" name="contentType" value="renote">
+          <div><b data-i18n="ctRenote"></b><small data-i18n="ctRenoteDesc"></small></div>
+        </label>
+      </div>
+    </div>
+
+    <div class="grp">
       <div class="gtitle"><svg class="ic"><use href="#i-shield"/></svg><span data-i18n="presetTitle"></span></div>
       <div class="row">
         <label style="flex:1"><span data-i18n="presetLabel"></span>
@@ -67,14 +85,6 @@
 
     <div class="grp">
       <div class="gtitle"><svg class="ic"><use href="#i-target"/></svg><span data-i18n="rangeTitle"></span></div>
-      <div class="modes">
-        <label class="radio"><input type="radio" name="mode" value="files" checked>
-          <div><b data-i18n="modeFiles"></b><small data-i18n="modeFilesDesc"></small></div>
-        </label>
-        <label class="radio"><input type="radio" name="mode" value="full">
-          <div><b data-i18n="modeFull"></b><small data-i18n="modeFullDesc"></small></div>
-        </label>
-      </div>
       <div class="row">
         <label><span data-i18n="paceLabel"></span>
           <select id="pace">
