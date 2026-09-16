@@ -17,7 +17,6 @@ A Chrome / Edge (MV3) browser extension that grabs images posted by a misskey.io
 ## Features
 
 - **One-click grabbing**: press the injected button on any misskey.io user page, with four content types — **All / Images only / Posts / Renotes** — covering the whole timeline (text posts, replies and channel notes included)
-- **Multi-site**: beyond misskey.io, **baraag.net** (Mastodon) is now supported — just enter `@username@baraag.net`; same mixed-archive pipeline
 - **Low-footprint design**: requests go through your own logged-in page context (same origin/session as normal browsing) with human-like randomized pacing, periodic long pauses, batch rests, and exponential backoff on rate limits. **It cannot and does not try to be "invisible"** — cap your volume with the built-in limits
 - **Incremental archive**: repeated exports only download new images and keep merging into the same `archive.html`
 - **Six export modes**: update local archive (main path) / HTML snapshot ZIP / folder snapshot / single-file HTML (images embedded) / images-only ZIP / metadata (JSON+CSV)

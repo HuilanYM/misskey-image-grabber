@@ -29,7 +29,6 @@ main, section { max-width: 860px; margin: 0 auto; padding: 8px 16px; }
 
 label { display: block; color: var(--dim); font-size: 13px; }
 label.big input { margin-top: 6px; font-size: 15px; }
-.sitehint { color: var(--dim); font-size: 12px; margin: -6px 0 10px; min-height: 16px; }
 input, select {
   background: var(--panel2);
   border: 1px solid var(--line);
