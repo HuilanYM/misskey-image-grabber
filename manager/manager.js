@@ -7,6 +7,7 @@ import * as store from '../lib/store.js';
 import { collectFiles, buildArchiveHtml, buildDataJson, buildCsv } from '../lib/render.js';
 import { StoreZip } from '../lib/zip.js';
 import { t as tt, normalizeLang, detectUiLang } from '../lib/i18n.js';
+import * as sites from '../lib/sites.js';
 import * as history from '../lib/history.js';
 import * as archstore from '../lib/archstore.js';
 import { supportsDirPicker, pickDirectory, loadHandle, hasPermission, requestPermission, writeFileIn, fileExists, listEntries, readFileText } from './dirhandle.js';
@@ -339,6 +340,19 @@ function crawlHooks() {
 
 let maxNotesAutoN = 0; // 非图片模式下按用户笔记总数自动放宽 maxNotes 的结果（0=未放宽），用于抓取摘要提示
 
+let baraagPageFetchFn = null; // baraag.net 的适配器翻页函数（不可序列化，续抓时按 site 重建）
+
+// 站点提示：随输入实时显示识别结果（@user 默认 misskey.io；带 baraag.net 域则显示 Mastodon 站点）
+function updateSiteHint() {
+  const el = document.getElementById('siteHint');
+  if (!el) return;
+  const det = sites.detectSiteFromInput(document.getElementById('userInput').value);
+  if (!det) { el.textContent = ''; return; }
+  const raw = document.getElementById('userInput').value.trim().replace(/^@/, '');
+  const isDefault = det.site.id === 'misskey.io' && !raw.includes('@');
+  el.textContent = isDefault ? T('siteHintDefault') : T('siteHintNamed').replace('{h}', det.host);
+}
+
 async function startCrawl(input) {
   aborted = false; // 上一次「停止」的标志必须在此清掉，否则本会话内所有后续抓取都会秒失败
   const opts = readForm();
@@ -352,8 +366,23 @@ async function startCrawl(input) {
   startElapsed();
   setStatus(T('querying'));
 
-  const c = new Crawler({ api, opts: {}, state: {}, hooks: crawlHooks(), lang: uiLang });
-  const ru = await c.resolveUser(input);
+  console.log('[trace] enter');
+  // 站点识别：@user 默认 misskey.io；@user@baraag.net / https://baraag.net/@user 走 baraag 适配器
+  const det = sites.detectSiteFromInput(input);
+  if (!det) {
+    stopElapsed();
+    show('secSetup');
+    $('setupMsg').textContent = '❌ ' + T('querying');
+    return;
+  }
+
+  let ru;
+  if (det.site.kind === 'mastodon') {
+    ru = await sites.baraagResolve(input);
+  } else {
+    const c = new Crawler({ api, opts: {}, state: {}, hooks: crawlHooks(), lang: uiLang });
+    ru = await c.resolveUser(input);
+  }
   if (!ru.ok) {
     stopElapsed();
     show('secSetup');
@@ -361,6 +390,7 @@ async function startCrawl(input) {
     return;
   }
 
+  console.log('[trace] resolved');
   // 非图片模式：按用户笔记总数自动放宽 maxNotes（含 200 条预留），旧的图片时代默认值不再截断文字流
   maxNotesAutoN = 0;
   if (opts.contentType !== 'image' && opts.maxNotes > 0) {
@@ -372,13 +402,24 @@ async function startCrawl(input) {
     }
   }
 
+  // 游标形态按站点区分（misskey=untilId，baraag=max_id 命名空间 id）；pageFetch 不可序列化，
+  // 只挂在内存变量上（task.opts 里只记 site 字符串，续抓时按 site 重建）
+  const state = det.site.kind === 'mastodon'
+    ? { userId: ru.user.id, cursor: null, seen: {}, notes: [], requests: 0, done: false }
+    : { userId: ru.user.id, untilId: null, seen: {}, notes: [], requests: 0, done: false };
+  baraagPageFetchFn = det.site.kind === 'mastodon'
+    ? sites.baraagPageFetch({ rawId: ru.rawId, contentType: opts.contentType, limit: 40 })
+    : null;
+  opts.site = det.site.id;
+
   task = {
     user: ru.user,
     opts,
-    state: { userId: ru.user.id, untilId: null, seen: {}, notes: [], requests: 0, done: false },
+    state,
     status: 'running',
     startedAt: Date.now(),
   };
+  console.log('[trace] before save');
   await store.saveTask(task);
   await store.saveSettings({ user: input });
   await runCrawler();
@@ -388,8 +429,12 @@ async function resumeCrawl() {
   aborted = false; // 同 startCrawl：续抓入口也要清掉上一次「停止」的标志
   const opts = task.opts;
   if (!opts.contentType) opts.contentType = 'image'; // 旧任务升级兼容：缺省按仅图片
+  if (!opts.site) opts.site = 'misskey.io';
+  baraagPageFetchFn = opts.site === 'baraag.net'
+    ? sites.baraagPageFetch({ rawId: String(task.state.userId).split(':').pop(), contentType: opts.contentType, limit: 40 })
+    : null;
   maxNotesAutoN = 0; // 续抓时 opts.maxNotes 已在创建时放宽过，不再重复提示
-  crawler = new Crawler({ api, opts, state: task.state, hooks: crawlHooks(), lang: uiLang });
+  crawler = new Crawler({ api, opts, state: task.state, hooks: crawlHooks(), lang: uiLang, pageFetch: baraagPageFetchFn });
   show('secProgress');
   startElapsed();
   setCrawlBar(opts.maxNotes ? Math.min(100, Math.round((task.state.notes.length / opts.maxNotes) * 100)) : null);
@@ -401,7 +446,7 @@ async function resumeCrawl() {
 }
 
 async function runCrawler() {
-  crawler = new Crawler({ api, opts: task.opts, state: task.state, hooks: crawlHooks(), lang: uiLang });
+  crawler = new Crawler({ api, opts: task.opts, state: task.state, hooks: crawlHooks(), lang: uiLang, pageFetch: baraagPageFetchFn });
   let r;
   try {
     r = await crawler.run();
@@ -535,6 +580,7 @@ async function fetchUrlBytes(url, { label = '', on429Wait = true } = {}) {
 
 /** URL 过期时通过 notes/show 刷新单条笔记取新地址 */
 async function refreshFileUrl(item) {
+  if (task && task.opts && task.opts.site === 'baraag.net') return false; // baraag 无刷新机制
   const res = await api.call('notes/show', { noteId: item.note.id });
   if (!res.ok || !Array.isArray(res.data.files)) return false;
   const f = res.data.files.find((x) => x.id === item.file.id);
@@ -1567,12 +1613,14 @@ async function init() {
   const settings = await store.loadSettings();
   uiLang = normalizeLang((await chrome.storage.local.get('mg:lang'))['mg:lang'] || detectUiLang()); // 未设置时跟随浏览器语言
   $('uiLang').value = uiLang;
+  $('userInput').addEventListener('input', updateSiteHint);
   applyI18n();
   fillForm(settings); // uiLang 就绪后再填表：presetDesc 等动态文案要用对语言（先填会残留 zh-CN）
   $('uiLang').addEventListener('change', async () => {
     uiLang = normalizeLang($('uiLang').value);
     await chrome.storage.local.set({ 'mg:lang': uiLang });
     applyI18n();
+    updateSiteHint();
     applyPreset($('preset').value);
     updateTokenPill();
     updateDirLabel();
@@ -1586,6 +1634,8 @@ async function init() {
   const m = /^#u=(.+)$/.exec(location.hash);
   if (m) $('userInput').value = decodeURIComponent(m[1]).trim();
   else if (settings.user) $('userInput').value = settings.user;
+  $('userInput').addEventListener('input', updateSiteHint);
+  updateSiteHint();
   await refreshResumeBanner();
   show('secSetup');
   markNav('navNew');
